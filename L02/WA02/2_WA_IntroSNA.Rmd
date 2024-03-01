@@ -1,0 +1,287 @@
+---
+title: "2 WA. Introduction to Networks"
+author: "Dr. Uma Ravat"
+date: "Feb 2024"
+subtitle: '<br><br>Introduction to Social Network Analysis in R '
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo = F}
+bfcolor <- function(x, color) {
+  if (knitr::is_latex_output()) {
+    sprintf("\\textcolor{%s}{\\textbf{%s}}", color, x)
+  } else if (knitr::is_html_output()) {
+    sprintf("<span style='color: %s;'><b>%s</b></span>", color, x)
+  } else x
+}
+```
+
+
+# 1. Introduction to Networks
+
+## -------~~ 1.Set up --------
+
+```{r load_packages}
+# (remove # below and run this if they are not already installed )
+# once installed put # back to avoid warnings/errors
+#install.packages("igraph")
+#install.packages("igraphdata")
+
+library(igraphdata)
+library(igraph)
+
+```
+
+`r bfcolor("Question:", "blue")` What is the command to load a dataset? Load a library
+
+`r bfcolor("Solution:", "blue")` 
+
+
+Some setup so plots are bigger with no margins
+
+``` {r}
+
+#default margins
+def_marg <- c(5.1, 4.1, 4.1, 2.1)
+
+#no margins
+no_marg <- c(0, 0, 0, 0)
+
+```
+
+## -------~~ 2.Load the data  --------
+
+```{r}
+data(UKfaculty)
+```
+
+`r bfcolor("Question:", "blue")` What is the command to load a dataset? Load a package?
+
+`r bfcolor("Solution:", "blue")` 
+
+
+
+## -------~~ 3.Plot of our network  --------
+
+```{r}
+par(mar=no_marg)
+plot(UKfaculty, 
+     vertex.size = 9,
+     vertex.color = "#88398A",
+     vertex.frame.color= "#88398A",
+     vertex.label.family = "Helvetica", 
+     vertex.label.cex = 0.5,
+     vertex.label.color = "white",
+     edge.arrow.size = 0.2)
+```
+
+# 2. Exploring our Network
+
+##  Take a look first!
+
+`r bfcolor("Question:", "blue")` What are the most general characteristics of this network?
+
+```{r}
+# ================  ~~ Exploring the  network ================
+UKfaculty
+
+# The description of the igraph object starts with up to four letters:
+# 1. D or U, for a directed or undirected graph
+# 2. N for a named graph (where nodes have a name attribute)
+# 3. W for a weighted graph (where edges have a weight attribute)
+# 4. B for a bipartite (two-mode) graph (where nodes have a type attribute)
+#
+# The two numbers that follow refer to the number of nodes and edges in the graph. 
+# The description also lists graph, node & edge attributes, for example:
+# (g/c) - graph-level character attribute
+# (v/c) - vertex-level character attribute
+# (e/n) - edge-level numeric attribute
+# .... etc.
+```
+
+`r bfcolor("Question:", "blue")` Does this graph have multiple edges per pair of nodes? Does the graph have any loops?
+
+_Recall: A graph is a simple graph if it does not contain loop edges and multiple edges._
+
+```{r}
+is.simple(UKfaculty)
+```
+
+
+# 3. Your Turn: Explore the basic characteristics of the karate network
+
+Add code chunks as necessary to run your code and answer the questions below
+
+- `r bfcolor("Question:", "blue")` How many nodes does the network have?
+- `r bfcolor("Question:", "blue")` Is the network directed or undirected?
+- `r bfcolor("Question:", "blue")` What vertex and edge attributes does the network have?
++ `r bfcolor("Question:", "blue")` Does the graph have multiple edges per pair of nodes or any loops?
+
+
+# 4. Taking a closer look: Network Attributes 
+
+## Graph Attributes
+
+```{r}
+graph.attributes(UKfaculty)
+```
+
+## Vertex Attributes
+
+```{r vatrributes}
+# ================  ~~  Vertex attributes  ================
+ 
+vertex.attributes(UKfaculty)
+
+V(UKfaculty)[[1:5]]
+
+V(UKfaculty)$Group
+
+table(V(UKfaculty)$Group)
+```
+
+## Edge Attributes
+
+```{r eatrributes}
+# ================  ~~  Edge attributes  ================
+ 
+edge.attributes(UKfaculty)
+
+E(UKfaculty)[[1:5]]
+
+E(UKfaculty)$weight
+
+summary(E(UKfaculty)$weight)
+
+par(mar=def_marg)
+hist(E(UKfaculty)$weight)
+```
+
+# 5. Accessing and Exploring Specific Elements 
+
+## Exploring vertices 
+
+### All vertices
+
+```{r}
+V(UKfaculty)
+```
+
+### Specific node connections 
+
+`r bfcolor("Question:", "blue")` Which nodes are connected to node 1?
+
+```{r}
+
+# outgoing ties
+neighbors(UKfaculty, 1, mode = "out")
+
+#incoming ties
+neighbors(UKfaculty, 1, mode = "in")
+
+# all ties
+neighbors(UKfaculty, 1, mode = "all")
+
+```
+
+`r bfcolor("Question:", "blue")` Which nodes have less than 10 connections?
+
+```{r}
+V(UKfaculty)[degree(UKfaculty) < 10]
+```
+
+## Exploring edges
+
+`r bfcolor("Question:", "blue")` Does a given edge exist?
+
+```{r}
+
+UKfaculty[1,2]
+UKfaculty[1,44]
+UKfaculty[44,1]
+
+```
+
+`r bfcolor("Question:", "blue")` Edges between specific nodes
+
+```{r}
+E(UKfaculty)[1 %--% 2]
+
+# regardless of the direction
+E(UKfaculty)[1 %--% 44]
+
+# from 44 to 1
+E(UKfaculty)[1 %<-% 44]
+
+# from 1 to 44
+E(UKfaculty)[1 %->% 44]
+```
+
+`r bfcolor("Question:", "blue")` Edges containing specific vertices
+
+```{r}
+
+# All incoming edges of a vertex
+E(UKfaculty)[to(1)]
+
+# All outgoing edges of a vertex
+E(UKfaculty)[.from(1)]
+
+```
+# 6. Your turn! Take a closer look at Karate network!
+
+```{r}
+data(karate)
+```
+Running this code will tell us the general characteristics of the network and the name of its attributes. 
+
+```{r}
+karate
+```
+
+**To answer each question in code chunks below**,
+1. Replace every [xxx] with your code
+2. Run the code chunk individually by clicking the "green triangle"
+3. To see your solution in the knitted document, make sure to replace `eval=FALSE` with `eval=TRUE`
+
+`r bfcolor("Question:", "blue")` How many factions does the karate network have? 
+`r bfcolor("Question:", "blue")` How many nodes belong to each faction?
+
+```{r, eval=FALSE}
+table(V(karate)$[xxx])
+```
+
+`r bfcolor("Question:", "blue")` Which nodes nominated Mr. Hi?
+
+```{r, eval=FALSE}
+
+neighbors(karate, "Mr Hi", mode = [xxx])
+
+```
+
+`r bfcolor("Question:", "blue")` Which nodes nominated John A?
+
+```{r, , eval=FALSE}
+[xxx](karate, "John A", mode = "in")
+```
+
+`r bfcolor("Question:", "blue")` How many nodes nominated both Mr Hi and John A?
+
+```{r, , eval=FALSE}
+
+mh <- neighbors([xxx], "Mr Hi", mode = [xxx])
+ja <- neighbors([xxx], "John A", mode = [xxx])
+
+sum(mh %in% ja)
+
+```
+
+`r bfcolor("Question:", "blue")` Is there an edge between Mr Hi and John A?
+
+```{r, eval=FALSE}
+E(karate)["Mr Hi" [xxx] "John A"]
+```
+
