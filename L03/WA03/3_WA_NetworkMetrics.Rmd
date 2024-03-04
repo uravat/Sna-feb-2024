@@ -1,0 +1,310 @@
+---
+title: "3 WA. Descriptive Network Statistics (Metrics) "
+author: "Dr. Uma Ravat"
+date: "Feb 2024"
+subtitle: '<br><br>Introduction to Social Network Analysis in R '
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo = F}
+bfcolor <- function(x, color) {
+  if (knitr::is_latex_output()) {
+    sprintf("\\textcolor{%s}{\\textbf{%s}}", color, x)
+  } else if (knitr::is_html_output()) {
+    sprintf("<span style='color: %s;'><b>%s</b></span>", color, x)
+  } else x
+}
+```
+
+
+# 1. Setting up the network 
+
+Load the `UKFaculty` Network
+
+```{r setup_network}
+# (remove # below and run this if they are not already installed )
+# once installed put # back to avoid warnings/errors
+#install.packages("igraph")
+#install.packages("igraphdata")
+
+library(igraphdata)
+library(igraph)
+
+## Some setup so plots are bigger with no margins
+#default margins
+def_marg <- c(5.1, 4.1, 4.1, 2.1)
+
+#no margins
+no_marg <- c(0, 0, 0, 0)
+
+## load the data
+data(UKfaculty)
+```
+
+# 2. Descriptive Network Statistics (Metrics)
+
+```{r}
+
+# ================  ~~ Descriptive Network Statistics (Metrics) ================
+# Density 
+graph.density(UKfaculty)
+
+# Reciprocity 
+reciprocity(UKfaculty)
+
+# Dyad Census 
+dyad_census(UKfaculty)
+
+# Transitivity 
+transitivity(UKfaculty)
+
+# Reachability 
+average.path.length(UKfaculty)
+
+diameter(UKfaculty, weights = NA)
+
+#diameter(UKfaculty)
+
+farthest_vertices(UKfaculty)
+
+#farthest_vertices(UKfaculty, , weights = NA)
+
+# Connected components
+is.connected(UKfaculty, mode = "strong")
+
+# Articulation points
+articulation.points(UKfaculty)
+
+```
+
+
+# 3. Network visualization
+
+### Basic plot
+
+```{r}
+#basic plot
+plot(UKfaculty)
+```
+
+
+
+### Improving the plot
+
+**Option 1:** Setting visual properties outside the plot function
+
+We add attributes to the network
+
+**Step 1** Set vertex and/or edge attributes
+
+```{r}
+
+# vertex properties 
+V(UKfaculty)$color <- "#88398A"
+
+# vertex label properties
+V(UKfaculty)$label.color <- "white"
+V(UKfaculty)$label.cex <- 0.5
+
+# edge properties
+E(UKfaculty)$color <- "gray"
+
+```
+
+**Step 2** Plot network
+
+```{r}
+
+plot(UKfaculty)
+
+```
+
+### Option 2 Setting visual properties inside the plot function
+
+We use the function arguments
+
+```{r}
+
+plot(UKfaculty, 
+     # === vertex properties 
+     vertex.color = "#88398A",
+     vertex.frame.color = "#88398A",
+     vertex.size = 9,
+     # === vertex label properties
+     vertex.label.cex = 0.5,
+     vertex.label.color = "white",
+     vertex.label.family = "Helvetica",
+     # === edge properties
+     edge.color = "gray",
+     edge.width = 0.5,
+     edge.arrow.size = 0.2)
+```
+
+
+This helps us add different visual properties to subsets of edges or nodes. 
+
+### Coloring nodes by group to which they belong
+
+```{r}
+table(V(UKfaculty)$Group)
+
+mycolors <- c("black", 
+              "#D3D3D3", 
+              "#88398A", 
+              "white", 
+              "#562457")
+mylabcols <- c("white", "black", "white", "black", "white")
+
+V(UKfaculty)$color <- mycolors[V(UKfaculty)$Group]
+V(UKfaculty)$frame.color <- mycolors[V(UKfaculty)$Group]
+V(UKfaculty)$label.color <- mylabcols[V(UKfaculty)$Group]
+
+plot(UKfaculty)
+```
+
+We can also combine both options. This is usually what we do. 
+
+```{r}
+plot(UKfaculty,
+     vertex.size = 9,
+     # === vertex label properties
+     vertex.label.family = "Helvetica",
+     # === edge properties
+     edge.width = 0.5,
+     edge.arrow.size = 0.1)
+```
+
+
+### Coloring specifc edges
+
+```{r}
+E(UKfaculty)$color <- "gray"
+E(UKfaculty)$color[E(UKfaculty)[47%--%28]] <- "red"
+
+plot(UKfaculty, 
+     # === vertex properties 
+     vertex.size = 9,
+     # === vertex label properties
+     vertex.label.cex = 0.5,
+     vertex.label.family = "Helvetica",
+     # === edge properties
+     edge.width = 0.5,
+     edge.arrow.size = 0.1)
+
+```
+
+
+
+
+# 4. Centrality
+
+## Degree Centrality 
+
+```{r}
+
+# Indegree 
+degree(UKfaculty, mode="in")
+par(mar= def_marg)
+hist(degree(UKfaculty, mode = "in"),
+     breaks=1:vcount(UKfaculty)-1, 
+     main="Indegree histogram")
+
+# Outdegree
+degree(UKfaculty, mode="out")
+hist(degree(UKfaculty, mode = "out"),
+     breaks=1:vcount(UKfaculty)-1, 
+     main="Outdegree histogram")
+
+# Combine indegree and outdegree 
+
+deg <- degree(UKfaculty, mode="all")
+
+V(UKfaculty)$deg <- deg
+
+par(mar= no_marg)
+
+plot(UKfaculty, 
+     vertex.size=deg)
+
+plot(UKfaculty, 
+     vertex.size=sqrt(deg)+1,
+     vertex.label.cex = 0.4,
+     edge.arrow.size = 0.1)
+
+# arrange by degree
+sort(deg, decreasing = T, index.return = T)
+
+# uniform coloring
+V(UKfaculty)$color <- "white"
+V(UKfaculty)$label.color <- "black"
+V(UKfaculty)$frame.color <- "black"
+
+#coloring 5 most central nodes
+V(UKfaculty)$color[V(UKfaculty)[c(29,37,77,62,52)]] <- "#88398A"
+
+plot(UKfaculty, 
+     vertex.size=10,
+     vertex.label.cex = 0.4,
+     edge.arrow.size = 0.1)
+```
+
+## Closeness Centrality 
+
+```{r}
+cl <- closeness(UKfaculty, mode="all", weights=NA) 
+
+centr_clo(UKfaculty, mode="all", normalized=T)
+
+# arrange by closeness
+sort(cl, decreasing = T, index.return = T)
+
+# uniform coloring
+V(UKfaculty)$color <- "white"
+
+#coloring 5 most central nodes
+V(UKfaculty)$color[V(UKfaculty)[c(29, 37, 62, 52, 69)]] <- "#88398A"
+
+plot(UKfaculty, 
+     vertex.size=10,
+     vertex.label.cex = 0.4,
+     edge.arrow.size = 0.1)
+```
+
+## Betweenness Centrality 
+
+```{r}
+btw <- betweenness(UKfaculty, directed=T, weights=NA)
+
+edge_betweenness(UKfaculty, directed=T, weights=NA)
+
+centr_betw(UKfaculty, directed=T, normalized=T)
+
+# sorting by betweenness 
+sort(btw, decreasing = T, index.return = T)
+
+V(UKfaculty)$color[V(UKfaculty)[c(62, 29, 37, 38, 52)]] <- "#88398A"
+
+plot(UKfaculty, 
+     vertex.size=10,
+     vertex.label.cex = 0.4,
+     edge.arrow.size = 0.1)
+```
+
+# 5. Your Turn: Descriptive statistics for the karate network
+
+Obtain measures of density, reciprocity, dyad census, transitivity, average path length, diameter, and articulation points for the karate network. 
+
+_Be sure to load the network first_
+
+_Add code chunks as necessary to run your code and answer the following_
+
+```{r}
+
+```
+
+
+`r bfcolor("Question:", "blue")` Based on these metrics, what can you say about this network?
+
