@@ -1,0 +1,123 @@
+---
+title: "4 WA. Community detection"
+author: "Dr. Uma Ravat"
+date: "Feb 2024"
+subtitle: '<br><br>Introduction to Social Network Analysis in R '
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo = F}
+bfcolor <- function(x, color) {
+  if (knitr::is_latex_output()) {
+    sprintf("\\textcolor{%s}{\\textbf{%s}}", color, x)
+  } else if (knitr::is_html_output()) {
+    sprintf("<span style='color: %s;'><b>%s</b></span>", color, x)
+  } else x
+}
+```
+
+
+# 1. Setting up the network 
+
+Load the `UKFaculty` Network
+
+```{r setup_network}
+# (remove # below and run this if they are not already installed )
+# once installed put # back to avoid warnings/errors
+#install.packages("igraph")
+#install.packages("igraphdata")
+
+library(igraphdata)
+library(igraph)
+
+## Some setup so plots are bigger with no margins
+#default margins
+def_marg <- c(5.1, 4.1, 4.1, 2.1)
+
+#no margins
+no_marg <- c(0, 0, 0, 0)
+
+## load the data
+data(UKfaculty)
+```
+
+# 2. Community Detection
+
+Data preparation 
+
+```{r}
+# convert to undirected graph
+und_UKfaculty <- as.undirected(UKfaculty)
+```
+
+
+Conduct community structure procedure
+
+
+```{r}
+kc <- fastgreedy.community(und_UKfaculty)
+```
+
+Explore results 
+
+```{r}
+class(kc)
+
+length(kc)
+
+sizes(kc)
+
+modularity(kc)
+```
+
+Plot results 
+```{r}
+plot(kc, und_UKfaculty)
+dendPlot(kc, mode = "phylo")
+```
+
+Improving the plot
+
+```{r}
+V(UKfaculty)$community <- kc$membership
+
+mycomcols <- c("black", "#D3D3D3", "#88398A", "white", "#562457")
+
+mylabcols <- c("white", "black", "white", "black", "white")
+
+V(UKfaculty)$color <- mycomcols[V(UKfaculty)$community]
+V(UKfaculty)$label.color <- mylabcols[V(UKfaculty)$community]
+
+par(mar=no_marg)
+plot(UKfaculty,
+     vertex.size = 7,
+     vertex.color = V(UKfaculty)$color, 
+     vertex.label.color = V(UKfaculty)$label.color, 
+     vertex.label.family = "Helvetica",
+     vertex.frame.color = "#88398A",
+     vertex.label.cex= 0.5,
+     edge.color = "gray60",
+     edge.arrow.size = 0.2,
+     edge.width = E(UKfaculty)$weight*0.5,
+     edge.curved = 0.5,
+     mark.groups = list(V(UKfaculty)[kc$membership==1],
+                   V(UKfaculty)[kc$membership==2], 
+                   V(UKfaculty)[kc$membership==3],
+                   V(UKfaculty)[kc$membership==4],
+                   V(UKfaculty)[kc$membership==5]), 
+          mark.col="gray90", mark.border="#88398A")
+```
+
+# 3. Your turn!
+
+`r bfcolor("Question:", "blue")` Conduct a community structure procedure with 
+the karate data. How many groups do you obtain?
+
+```{r}
+```
+
+
+
